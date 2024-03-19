@@ -78,30 +78,30 @@ def implicit(u,m,n,p,h):
     # initialise implicit solution matrix
     u_implicit = u.copy()
     # diagonal coefficient
-    a = (1 + (sigma2*p/h**2))
+    a = 1 + (sigma2*p/h**2)
     # upper and lower diagonal coefficient
     b = -sigma2*p/(2*h**2)
-    for i in range(1,m):       # looping through tau
+    for i in range(0,m-1):       # looping through tau
         # initialise tridiagonal matrix A
         A = np.zeros((n-2,n-2))
         # initialise known solution matrix C
         C = np.zeros((n-2,1))
         
-        C[0,0] = -b*(u_implicit[i-1,0]+u_implicit[i-1,2]-2*u_implicit[i-1,1]) + u_implicit[i-1,1] - b*u_implicit[i,0]
-        C[-1,0] = -b*(u_implicit[i-1,-1]+u_implicit[i-1,-3]-2*u_implicit[i-1,-2]) + u_implicit[i-1,-2] - b*u_implicit[i,-1]
+        C[0,0] = -b*(u_implicit[i,0]+u_implicit[i,2]-2*u_implicit[i,1]) + u_implicit[i,1] - b*u_implicit[i+1,0]
+        C[-1,0] = -b*(u_implicit[i,-1]+u_implicit[i,-3]-2*u_implicit[i,-2]) + u_implicit[i,-2] - b*u_implicit[i+1,-1]
         A[0,:2] = [a,b]
         A[-1,-2:] = [b,a]
         # populate A and C
         for j in range(1,n-3):
-            A[j,j-1] = b
-            A[j,j] = a
-            A[j,j+1] = b         
-            C[j,0] = -b*(u_implicit[i-1,j-1]+u_implicit[i-1,j+1]-2*u_implicit[i-1,j]) + u_implicit[i-1,j]
+            A[j,j-1:j+2] = [b,a,b]
+            C[j,0] = -b*(u_implicit[i,j-1]+u_implicit[i,j+1]-2*u_implicit[i,j]) + u_implicit[i,j]
         
         # solve for u(tau_i, x)
         B = np.linalg.solve(A,C)
-        u_implicit[i,1:-1] = B.flatten()
-
+        u_implicit[i+1,1:-1] = B.flatten()
+        if i == 5:
+            print(C)
+            print(B)
     return u_implicit
 
 u_implicit = implicit(u,m,n,p,h)
